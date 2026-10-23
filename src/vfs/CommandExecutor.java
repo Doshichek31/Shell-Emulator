@@ -1,6 +1,17 @@
 public class CommandExecutor {
+    private ShellEmulator gui;
+    private ConfigManager config;
 
-    public CommandExecutor() {}
+    public CommandExecutor(ShellEmulator gui) {
+        this(gui, null);
+    }
+    public CommandExecutor(ShellEmulator gui, ConfigManager config) {
+        this.gui = gui;
+        this.config = config;
+    }
+    public void setConfigManager(ConfigManager config) {
+        this.config = config;
+    }
 
     public String execute(String command, String[] parts) {
         switch (command.toLowerCase()) {
@@ -8,6 +19,8 @@ public class CommandExecutor {
                 return executeLs(parts);
             case "cd":
                 return executeCd(parts);
+            case "conf-dump":
+                return executeConfDump(parts);
             case "exit":
                 return executeExit(parts);
             default:
@@ -39,6 +52,14 @@ public class CommandExecutor {
 
         String directory = parts[1];
         return "cd: " + directory;
+    }
+
+    private String executeConfDump(String[] parts) {
+        if (config != null) {
+            return config.getConfigDump();
+        } else {
+            return "Configuration not loaded";
+        }
     }
 
     private String executeExit(String[] parts) {

@@ -1,0 +1,2 @@
+vfs_path: ./src/vfs
+script_path: ./scripts/startup.sh

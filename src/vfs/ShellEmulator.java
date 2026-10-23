@@ -8,8 +8,13 @@ public class ShellEmulator extends JFrame {
     private JTextArea outputArea;
     private JTextField inputField;
     private CommandExecutor executor;
+    private ConfigManager config;
+    private ScriptExecutor scriptExecutor;
 
-    public ShellEmulator() {
+    public ShellEmulator(String[] args) {
+        String configFile = "config.yaml";
+        config = new ConfigManager(args, configFile);
+
         setTitle("VFX - Shell Emulator");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
@@ -43,25 +48,42 @@ public class ShellEmulator extends JFrame {
         mainPanel.add(inputField, BorderLayout.SOUTH);
         add(mainPanel);
 
-        executor = new CommandExecutor();
+        executor = new CommandExecutor(this, config);
+        scriptExecutor = new ScriptExecutor(executor, this);
         setVisible(true);
+        String scriptPath = config.getScriptPath();
+        if (scriptPath != null && !scriptPath.isEmpty()) {
+            outputArea.append("Executing startup script: " + scriptPath + "\n\n");
+            boolean success = scriptExecutor.executeScript(scriptPath);
+            if (!success) {
+                outputArea.append("\nScript execution failed, continuing in interactive mode\n");
+            }
+        }
     }
 
     private void processCommand(String commandLine) {
         outputArea.append("> " + commandLine + "\n");
 
-        String[] parts = commandLine.trim().split("\\s+");
-        String command = parts[0];
-
         try {
+            String[] parts = commandLine.trim().split("\\s+");
+            if (parts.length == 0) {
+                return;
+            }
+
+            String command = parts[0];
             String result = executor.execute(command, parts);
             outputArea.append(result + "\n");
+
         } catch (Exception e) {
             outputArea.append("ERROR: " + e.getMessage() + "\n");
         }
     }
 
+    public void appendOutput(String text) {
+        outputArea.append(text);
+    }
+
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new ShellEmulator());
+        SwingUtilities.invokeLater(() -> new ShellEmulator(args));
     }
 }
